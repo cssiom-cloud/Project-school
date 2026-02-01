@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบสารสนเทศวันฮาโลวีน</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #ffffff; --bg-sidebar: #f8f9fa; --bg-header: #ffffff; --bg-card: #ffffff;
+            --text-main: #333333; --text-muted: #666666; --border-color: #e0e0e0;
+            --primary-blue: #003399; --primary-purple: #7b2cbf;
+            --hover-bg: rgba(0, 51, 153, 0.1); --shadow: 0 4px 20px rgba(0,0,0,0.05);
+            --bg-subbox: #f8f9fa;
+        }
+        [data-theme="dark"] {
+            --bg-body: #121212; --bg-sidebar: #1e1e1e; --bg-header: #1e1e1e; --bg-card: #252525;
+            --text-main: #e0e0e0; --text-muted: #a0a0a0; --border-color: #333333;
+            --primary-blue: #3b82f6; --primary-purple: #9d4edd;
+            --hover-bg: rgba(59, 130, 246, 0.15); --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --bg-subbox: #1e1e1e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-body); color: var(--text-main); transition: background-color 0.5s ease, color 0.5s ease; overflow-x: hidden; line-height: 1.8; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Prompt', sans-serif; }
+        .header { position: fixed; top: 0; left: 0; width: 100%; height: 70px; background-color: var(--bg-header); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; transition: all 0.5s ease; box-shadow: var(--shadow); }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .toggle-btn { background: none; border: none; font-size: 24px; color: var(--text-main); cursor: pointer; padding: 5px; transition: 0.3s; }
+        .toggle-btn:hover { color: var(--primary-blue); }
+        .header-right-logo { height: 45px; width: auto; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .sidebar { position: fixed; top: 70px; left: 0; width: 260px; height: calc(100vh - 70px); background-color: var(--bg-sidebar); border-right: 1px solid var(--border-color); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 900; display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar.collapsed { transform: translateX(-260px); }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--border-color); }
+        .sidebar-logo { width: 80px; height: auto; margin-bottom: 10px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .school-title { font-family: 'Prompt', sans-serif; font-size: 14px; font-weight: 600; color: var(--primary-blue); }
+        .menu-list { list-style: none; padding: 20px 10px; }
+        .menu-item { display: flex; align-items: center; padding: 15px 20px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s; color: var(--text-main); font-family: 'Prompt', sans-serif; font-size: 15px; }
+        .menu-item i { width: 30px; color: var(--primary-purple); }
+        .menu-item:hover { background-color: var(--hover-bg); color: var(--primary-blue); }
+        .menu-item.active { background-color: var(--primary-blue); color: white; box-shadow: 0 4px 10px rgba(0, 51, 153, 0.3); }
+        .menu-item.active i { color: white; }
+        .main-content { margin-top: 70px; margin-left: 260px; padding: 40px; transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1); min-height: calc(100vh - 70px); }
+        .main-content.expanded { margin-left: 0; }
+        .theme-wrapper { margin-top: auto; padding: 20px; border-top: 1px solid var(--border-color); }
+        .water-btn { position: relative; width: 100%; padding: 12px; border: 2px solid var(--primary-purple); background: transparent; color: var(--text-main); font-family: 'Prompt', sans-serif; font-weight: 600; cursor: pointer; overflow: hidden; border-radius: 8px; transition: color 0.5s; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .water-btn::before { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, var(--primary-blue), var(--primary-purple)); transition: top 0.6s cubic-bezier(0.4, 0, 0.2, 1); z-index: -1; }
+        .water-btn:hover { color: white; border-color: transparent; }
+        .water-btn:hover::before { top: 0; }
+        .page-section { display: none; animation: fadeIn 0.6s ease; }
+        .page-section.active { display: block; }
+        .content-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; margin-bottom: 25px; box-shadow: var(--shadow); }
+        .section-title { font-size: 28px; margin-bottom: 10px; color: var(--primary-blue); border-left: 5px solid var(--primary-purple); padding-left: 15px; }
+        .section-subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 16px; }
+        .info-box { background: rgba(123, 44, 191, 0.05); border-left: 4px solid var(--primary-purple); padding: 15px; margin-top: 15px; font-size: 0.95em; }
+        .sub-box { background-color: var(--bg-subbox); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); transition: background-color 0.5s; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        /* ปุ่ม Home */
+        .btn-home { position: fixed; bottom: 20px; right: 20px; background: var(--primary-blue); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000; transition: 0.3s; text-decoration: none; border: 2px solid white; }
+        .btn-home:hover { transform: scale(1.1); background: var(--primary-purple); }
+
+        /* ตารางรายชื่อ 7 คน */
+        .table-custom { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .table-custom th, .table-custom td { border-bottom: 1px solid var(--border-color); padding: 15px; text-align: left; }
+        .table-custom th { color: var(--primary-blue); font-weight: 600; background: var(--bg-subbox); }
+        .table-custom tr:hover { background-color: rgba(0,0,0,0.02); }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-260px); }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .grid-2 { grid-template-columns: 1fr; }
+            /* ทำให้ตารางเลื่อนได้ในมือถือ */
+            .table-responsive { overflow-x: auto; }
+            .table-custom { min-width: 600px; } 
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <span style="font-family: 'Prompt'; font-weight: bold; font-size: 18px; color: var(--primary-blue);">Halloween Info System</span>
+        </div>
+        <img src="p/1.jpg" alt="School Logo" class="header-right-logo">
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="p/1.jpg" alt="Logo" class="sidebar-logo">
+            <div class="school-title">โครงงานนักเรียน (Student Project)</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">ระบบฐานข้อมูลวิชาการ</div>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="showPage('intro', this)"><i class="fa-solid fa-book-open"></i> บทนำและการศึกษา</li>
+            <li class="menu-item" onclick="showPage('history', this)"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติศาสตร์</li>
+            <li class="menu-item" onclick="showPage('symbols', this)"><i class="fa-solid fa-shapes"></i> สัญลักษณ์และตำนาน</li>
+            <li class="menu-item" onclick="showPage('traditions', this)"><i class="fa-solid fa-masks-theater"></i> ธรรมเนียมปฏิบัติ</li>
+            <li class="menu-item" onclick="showPage('global', this)"><i class="fa-solid fa-earth-americas"></i> มุมมองระดับโลก</li>
+            <li class="menu-item" onclick="showPage('members', this)"><i class="fa-solid fa-users-viewfinder"></i> คณะผู้จัดทำ</li>
+        </ul>
+        <div class="theme-wrapper">
+            <button class="water-btn" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i> เปลี่ยนโหมดสี</button>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        
+        <section id="intro" class="page-section active">
+            <h1 class="section-title">บทนำและการศึกษา</h1>
+            <p class="section-subtitle">Introduction and Rationale</p>
+            <div class="content-card" data-aos="fade-up">
+                <h3><i class="fa-solid fa-magnifying-glass-chart" style="color: var(--primary-purple);"></i> ความสำคัญของเทศกาล</h3>
+                <p>ในปัจจุบัน "วันฮาโลวีน" ได้กลายเป็นเทศกาลระดับโลกที่ได้รับความนิยมอย่างสูง ไม่ใช่เพียงแค่วันปล่อยผีตามความเชื่อเดิม แต่เป็นปรากฏการณ์ทางวัฒนธรรมและเศรษฐกิจที่สำคัญ โดยมีการผสมผสานระหว่างความเชื่อโบราณกับความบันเทิงสมัยใหม่</p>
+                <div class="info-box">
+                    <strong>เกร็ดน่ารู้:</strong> ฮาโลวีนเป็นเทศกาลที่มีการใช้จ่ายสูงเป็นอันดับ 2 ของสหรัฐอเมริกา รองจากวันคริสต์มาส โดยส่วนใหญ่หมดไปกับเครื่องแต่งกาย ขนมหวาน และของตกแต่งบ้าน
+                </div>
+            </div>
+            <div class="content-card" data-aos="fade-up" data-aos-delay="100">
+                <h3><i class="fa-solid fa-list-check" style="color: var(--primary-blue);"></i> ขอบเขตเนื้อหา</h3>
+                <ul style="margin-left: 20px; list-style: circle;">
+                    <li>ศึกษาพัฒนาการจากเทศกาลชนเผ่าโบราณสู่เทศกาลระดับโลก</li>
+                    <li>วิเคราะห์ความหมายแฝงของสัญลักษณ์สำคัญ เช่น ตะเกียงฟักทอง และแม่มด</li>
+                    <li>สำรวจธรรมเนียมปฏิบัติในยุคปัจจุบัน เช่น การเล่น Trick or Treat</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="history" class="page-section">
+            <h1 class="section-title">ประวัติศาสตร์และรากฐาน</h1>
+            <p class="section-subtitle">Historical Timeline & Evolution</p>
+            
+            <div class="content-card" data-aos="fade-right">
+                <h3>1. ยุคชนเผ่าเซลท์: จุดเริ่มต้น (The Celtic Roots)</h3>
+                <p>ต้นกำเนิดของฮาโลวีนย้อนไปถึงเทศกาลโบราณชื่อ <strong>"Samhain" (ซาวิน)</strong> ของชาวเซลท์ในไอร์แลนด์ ซึ่งถือเป็นวันสิ้นสุดฤดูร้อนและเริ่มต้นปีใหม่ (1 พฤศจิกายน)</p>
+                <p>ชาวเซลท์เชื่อว่าในคืนวันที่ 31 ตุลาคม ม่านกั้นระหว่างโลกคนเป็นและคนตายจะบางที่สุด ทำให้วิญญาณสามารถข้ามมายังโลกมนุษย์ได้ จึงมีการจุดกองไฟศักดิ์สิทธิ์ (Bonfires) และสวมใส่เครื่องแต่งกายที่ทำจากหัวสัตว์และหนังสัตว์เพื่อขับไล่สิ่งชั่วร้าย</p>
+            </div>
+
+            <div class="content-card" data-aos="fade-left">
+                <h3>2. อิทธิพลของโรมันและคริสเตียน</h3>
+                <p>เมื่ออาณาจักรโรมันแผ่ขยายอำนาจ เทศกาลซาวินได้ถูกผนวกเข้ากับเทศกาล <strong>Feralia</strong> (วันระลึกถึงผู้ล่วงลับ) และ <strong>Pomona</strong> (วันบูชาเทพีแห่งผลไม้) ของโรมัน</p>
+                <p>ต่อมาในศตวรรษที่ 8 ศาสนจักรคริสต์ได้กำหนดให้วันที่ 1 พฤศจิกายน เป็น <strong>All Saints' Day (วันระลึกถึงนักบุญ)</strong> เพื่อทดแทนความเชื่อเดิม คืนก่อนหน้านั้นจึงถูกเรียกว่า "All Hallows' Eve" และกร่อนเสียงจนกลายเป็น <strong>"Halloween"</strong> ในที่สุด</p>
+            </div>
+        </section>
+
+        <section id="symbols" class="page-section">
+            <h1 class="section-title">สัญลักษณ์และตำนาน</h1>
+            <p class="section-subtitle">Symbolism & Mythology</p>
+            
+            <div class="grid-2">
+                <div class="content-card" data-aos="zoom-in">
+                    <h3><i class="fa-solid fa-fire" style="color: #ff6600;"></i> ตะเกียง Jack-o'-lantern</h3>
+                    <p>มาจากตำนานพื้นบ้านไอริชเรื่อง "Stingy Jack" ชายผู้หลอกลวงปีศาจ จนเมื่อตายไป สวรรค์ก็ไม่รับ นรกก็ไม่ต้อนรับ ต้องเร่ร่อนในความมืดมิดโดยมีเพียงถ่านไฟบรรจุในหัวผักกาดที่คว้านเนื้อออกเป็นตะเกียงนำทาง (ต่อมาชาวอเมริกันเปลี่ยนมาใช้ฟักทองเพราะหาง่ายกว่า)</p>
+                </div>
+                <div class="content-card" data-aos="zoom-in" data-aos-delay="100">
+                    <h3><i class="fa-solid fa-hat-wizard" style="color: var(--primary-purple);"></i> แม่มด (Witches)</h3>
+                    <p>เดิมทีคำว่า "Witch" มาจาก "Wicca" หมายถึงผู้มีปัญญา หรือหมอยาพื้นบ้าน แต่ในยุคกลางถูกศาสนจักรตีตราว่าเป็นตัวแทนของความชั่วร้าย ภาพลักษณ์ของแม่มดขี่ไม้กวาดและสวมหมวกทรงสูงจึงกลายเป็นสัญลักษณ์สากลของฮาโลวีน</p>
+                </div>
+                <div class="content-card" data-aos="zoom-in" data-aos-delay="200">
+                    <h3><i class="fa-solid fa-crow" style="color: var(--text-main);"></i> สัตว์แห่งความมืด</h3>
+                    <p><strong>แมวดำ:</strong> ถูกเชื่อว่าเป็น "Familiar" หรือร่างแปลงของปีศาจที่คอยรับใช้แม่มด<br>
+                    <strong>ค้างคาว:</strong> การก่อกองไฟในเทศกาลซาวินดึงดูดแมลง และแมลงก็ดึงดูดค้างคาวให้มากิน จึงกลายเป็นสัญลักษณ์คู่กัน</p>
+                </div>
+                <div class="content-card" data-aos="zoom-in" data-aos-delay="300">
+                    <h3><i class="fa-solid fa-ghost" style="color: var(--text-muted);"></i> ผีและวิญญาณ</h3>
+                    <p>แก่นแท้ของเทศกาลคือการที่โลกวิญญาณเปิดออก ภาพจำของผีที่คลุมผ้าขาว มาจากประเพณีการห่อศพด้วยผ้าลินินสีขาวในสมัยก่อน การแต่งกายเป็นผีจึงเป็นการจำลองลักษณะของผู้ที่ลุกขึ้นมาจากหลุมฝังศพ</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="traditions" class="page-section">
+            <h1 class="section-title">ธรรมเนียมปฏิบัติยุคใหม่</h1>
+            <p class="section-subtitle">Modern Customs & Activities</p>
+            
+            <div class="content-card" data-aos="fade-up">
+                <h3><i class="fa-solid fa-candy-cane" style="color: #e67e22;"></i> Trick or Treat (หลอกหรือเลี้ยง)</h3>
+                <p>กิจกรรมยอดนิยมที่เด็กๆ จะแต่งกายแฟนซีเดินไปเคาะประตูบ้านแล้วพูดว่า "Trick or Treat!" เพื่อขอขนม ธรรมเนียมนี้พัฒนามาจากประเพณี "Souling" ในยุคกลาง ที่คนยากจนจะเดินขอ "Soul Cake" แลกกับการสวดมนต์ให้ผู้ล่วงลับ</p>
+            </div>
+
+            <div class="content-card" data-aos="fade-up" data-aos-delay="100">
+                <h3><i class="fa-solid fa-mask" style="color: var(--primary-purple);"></i> การแต่งกายแฟนซี (Costumes)</h3>
+                <p>เดิมทีการสวมหน้ากากและชุดแปลกตาในเทศกาลซาวิน มีจุดประสงค์เพื่อพรางตัวไม่ให้วิญญาณชั่วร้ายจำได้ หรือเพื่อทำให้วิญญาณเหล่านั้นตกใจกลัว ปัจจุบันกลายเป็นกิจกรรมเพื่อความบันเทิงและความคิดสร้างสรรค์</p>
+            </div>
+        </section>
+
+        <section id="global" class="page-section">
+            <h1 class="section-title">มุมมองระดับโลก</h1>
+            <p class="section-subtitle">Global Traditions of the Dead</p>
+            
+            <div class="content-card" data-aos="fade-up">
+                <h3><i class="fa-solid fa-earth-americas" style="color: var(--primary-blue);"></i> เทศกาลที่คล้ายคลึงกัน</h3>
+                <p>ฮาโลวีนไม่ใช่เทศกาลเดียวที่เกี่ยวกับความตาย วัฒนธรรมอื่นๆ ก็มีเทศกาลในลักษณะนี้เช่นกัน:</p>
+                <div class="grid-2" style="margin-top: 20px;">
+                    <div class="sub-box">
+                        <strong style="color: #e67e22; font-size: 1.1em;">
+                            <i class="fa-solid fa-skull"></i> Dia de los Muertos (เม็กซิโก)
+                        </strong>
+                        <p style="font-size: 0.9em; margin-top: 10px;">"วันแห่งความตาย" (1-2 พ.ย.) เป็นการเฉลิมฉลองชีวิตมากกว่าการไว้อาลัย เชื่อว่าวิญญาณบรรพบุรุษจะกลับมาเยี่ยมครอบครัว มีการตกแต่งแท่นบูชาด้วยดอกดาวเรืองและหัวกะโหลกน้ำตาลหลากสี</p>
+                    </div>
+                    <div class="sub-box">
+                        <strong style="color: #e74c3c; font-size: 1.1em;">
+                            <i class="fa-solid fa-scroll"></i> Hungry Ghost Festival (จีน)
+                        </strong>
+                        <p style="font-size: 0.9em; margin-top: 10px;">"วันสารทจีน" (เดือน 7 ตามปฏิทินจันทรคติ) เชื่อว่าประตูนรกเปิดออก ลูกหลานจะจัดโต๊ะเซ่นไหว้และเผากระดาษเงินกระดาษทองเพื่ออุทิศส่วนกุศลให้แก่บรรพบุรุษและวิญญาณเร่ร่อน</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="members" class="page-section">
+            <h1 class="section-title">คณะผู้จัดทำ</h1>
+            <p class="section-subtitle">Organization Committee</p>
+            
+            <div class="content-card">
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th width="10%">ลำดับ</th>
+                                <th>ชื่อ - นามสกุล</th>
+                                <th width="20%">เลขที่</th>
+                                <th width="25%">หน้าที่</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>นาย เจษฎาพล สุทธิเชษฐ์</td>
+                                <td>15</td>
+                                <td>ประธานโครงงาน / ออกแบบระบบ</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>นางสาว เมธินันต์ ทินกลิ่นสิริกุล</td>
+                                <td>33</td>
+                                <td>รวบรวมข้อมูลประวัติศาสตร์</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>เด็กชาย พรรษกฤษ อนิวัตร</td>
+                                <td>5</td>
+                                <td>กราฟิกและมัลติมีเดีย</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>นาย จิรายุ แสวงหา</td>
+                                <td>1</td>
+                                <td>วิเคราะห์ข้อมูล</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>นาย ธนัตนันท์ ชูวงษ์</td>
+                                <td>4</td>
+                                <td>จัดทำรูปเล่มรายงาน</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>เด็กชาย ปัณณวัฒน์ กอประเสริฐสุด</td>
+                                <td>10</td>
+                                <td>พิสูจน์อักษร</td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>เด็กหญิง จิตาพัชญ์ นิลเพชรพลอย</td>
+                                <td>25</td>
+                                <td>ฝ่ายสนับสนุน</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="content-card" style="text-align: center; border-color: var(--primary-blue);">
+                <h3 style="color: var(--primary-blue);">ครูที่ปรึกษาโครงงาน</h3>
+                <p style="font-size: 18px; margin-top: 10px;">คุณครู ภิญญาภัช บุญพา</p>
+                <p style="color: var(--text-muted); font-size: 14px;">กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี</p>
+            </div>
+        </section>
+
+    </main>
+
+    <a href="index.html" class="btn-home" title="กลับหน้าหลัก">
+        <i class="fa-solid fa-house"></i>
+    </a>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+
+        // --- ระบบจำค่าธีม (Theme Persistence) ---
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            if (isDark) {
+                body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            if (window.innerWidth <= 768) sidebar.classList.toggle('mobile-open');
+            else { sidebar.classList.toggle('collapsed'); mainContent.classList.toggle('expanded'); }
+        }
+
+        function showPage(pageId, btnElement) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            btnElement.classList.add('active');
+            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mobile-open');
+            window.scrollTo(0,0);
+        }
+    </script>
+</body>
+</html>

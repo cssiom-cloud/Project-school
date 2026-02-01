@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบสารสนเทศอวกาศ (ฉบับสมบูรณ์)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        /* --- CSS Theme (Dark Space Style) --- */
+        :root {
+            --bg-body: #ffffff; --bg-sidebar: #f8f9fa; --bg-header: #ffffff; --bg-card: #ffffff;
+            --text-main: #333333; --text-muted: #666666; --border-color: #e0e0e0;
+            --primary-blue: #003399; --primary-purple: #7b2cbf;
+            --hover-bg: rgba(0, 51, 153, 0.1); --shadow: 0 4px 20px rgba(0,0,0,0.05);
+            --bg-subbox: #f8f9fa;
+        }
+        [data-theme="dark"] {
+            --bg-body: #0b0b14; /* ดำสนิทขึ้น */ --bg-sidebar: #12121f; --bg-header: #12121f; --bg-card: #1a1a2e;
+            --text-main: #e0e0e0; --text-muted: #a0a0a0; --border-color: #2a2a40;
+            --primary-blue: #4d88ff; --primary-purple: #bb86fc;
+            --hover-bg: rgba(77, 136, 255, 0.1); --shadow: 0 4px 20px rgba(0,0,0,0.6);
+            --bg-subbox: #12121f;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-body); color: var(--text-main); transition: background-color 0.5s ease, color 0.5s ease; overflow-x: hidden; line-height: 1.8; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Prompt', sans-serif; }
+        .header { position: fixed; top: 0; left: 0; width: 100%; height: 70px; background-color: var(--bg-header); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; transition: all 0.5s ease; box-shadow: var(--shadow); }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .toggle-btn { background: none; border: none; font-size: 24px; color: var(--text-main); cursor: pointer; padding: 5px; transition: 0.3s; }
+        .toggle-btn:hover { color: var(--primary-blue); }
+        .header-right-logo { height: 45px; width: auto; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .sidebar { position: fixed; top: 70px; left: 0; width: 260px; height: calc(100vh - 70px); background-color: var(--bg-sidebar); border-right: 1px solid var(--border-color); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 900; display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar.collapsed { transform: translateX(-260px); }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--border-color); }
+        .sidebar-logo { width: 80px; height: auto; margin-bottom: 10px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .school-title { font-family: 'Prompt', sans-serif; font-size: 14px; font-weight: 600; color: var(--primary-blue); }
+        .menu-list { list-style: none; padding: 20px 10px; }
+        .menu-item { display: flex; align-items: center; padding: 15px 20px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s; color: var(--text-main); font-family: 'Prompt', sans-serif; font-size: 15px; }
+        .menu-item i { width: 30px; color: var(--primary-purple); }
+        .menu-item:hover { background-color: var(--hover-bg); color: var(--primary-blue); }
+        .menu-item.active { background-color: var(--primary-blue); color: white; box-shadow: 0 4px 10px rgba(0, 51, 153, 0.3); }
+        .menu-item.active i { color: white; }
+        .main-content { margin-top: 70px; margin-left: 260px; padding: 40px; transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1); min-height: calc(100vh - 70px); }
+        .main-content.expanded { margin-left: 0; }
+        .theme-wrapper { margin-top: auto; padding: 20px; border-top: 1px solid var(--border-color); }
+        .water-btn { position: relative; width: 100%; padding: 12px; border: 2px solid var(--primary-purple); background: transparent; color: var(--text-main); font-family: 'Prompt', sans-serif; font-weight: 600; cursor: pointer; overflow: hidden; border-radius: 8px; transition: color 0.5s; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .water-btn::before { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, var(--primary-blue), var(--primary-purple)); transition: top 0.6s cubic-bezier(0.4, 0, 0.2, 1); z-index: -1; }
+        .water-btn:hover { color: white; border-color: transparent; }
+        .water-btn:hover::before { top: 0; }
+        .page-section { display: none; animation: fadeIn 0.6s ease; }
+        .page-section.active { display: block; }
+        .content-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; margin-bottom: 25px; box-shadow: var(--shadow); }
+        .section-title { font-size: 28px; margin-bottom: 10px; color: var(--primary-blue); border-left: 5px solid var(--primary-purple); padding-left: 15px; }
+        .section-subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 16px; }
+        .info-box { background: rgba(123, 44, 191, 0.05); border-left: 4px solid var(--primary-purple); padding: 15px; margin-top: 15px; font-size: 0.95em; }
+        .sub-box { background-color: var(--bg-subbox); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); transition: background-color 0.5s; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        
+        .btn-home { position: fixed; bottom: 20px; right: 20px; background: var(--primary-blue); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000; transition: 0.3s; text-decoration: none; border: 2px solid white; }
+        .btn-home:hover { transform: scale(1.1); background: var(--primary-purple); }
+
+        /* Profile Card */
+        .dev-card { padding: 0 !important; overflow: hidden; border: none; }
+        .dev-banner { height: 180px; background-image: url('p/banner.jpg'); background-size: cover; background-position: center; }
+        .dev-profile-row { display: flex; align-items: flex-start; padding: 0 30px 30px 30px; }
+        .dev-img-container { width: 150px; height: 150px; border-radius: 50%; border: 5px solid var(--bg-card); background: white; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-top: -75px; margin-right: 25px; flex-shrink: 0; z-index: 2; }
+        .dev-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .dev-info { margin-top: 10px; flex-grow: 1; }
+        .skill-tag { display: inline-block; background: var(--primary-purple); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 8px; font-family: 'Prompt'; }
+        .tag-bad { background: #e74c3c; }
+        .contact-list { list-style: none; margin-top: 15px; }
+        .contact-list li { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-260px); }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .dev-profile-row { flex-wrap: wrap; }
+            .dev-info { width: 100%; margin-top: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <span style="font-family: 'Prompt'; font-weight: bold; font-size: 18px; color: var(--primary-blue);">Space Info System</span>
+        </div>
+        <img src="p/1.jpg" alt="School Logo" class="header-right-logo">
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="p/1.jpg" alt="Logo" class="sidebar-logo">
+            <div class="school-title">โครงงานนักเรียน (Student Project)</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">ระบบสารสนเทศอวกาศ</div>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="showPage('intro', this)"><i class="fa-solid fa-meteor"></i> กำเนิดจักรวาล</li>
+            <li class="menu-item" onclick="showPage('solar', this)"><i class="fa-solid fa-sun"></i> ระบบสุริยะ</li>
+            <li class="menu-item" onclick="showPage('stars', this)"><i class="fa-solid fa-star"></i> วงจรชีวิตดาวฤกษ์</li>
+            <li class="menu-item" onclick="showPage('deepspace', this)"><i class="fa-solid fa-infinity"></i> วัตถุลึกลับ</li>
+            <li class="menu-item" onclick="showPage('exploration', this)"><i class="fa-solid fa-rocket"></i> ประวัติการสำรวจ</li>
+            <li class="menu-item" onclick="showPage('agencies', this)"><i class="fa-solid fa-building-columns"></i> องค์กรอวกาศ</li>
+            <li class="menu-item" onclick="showPage('future', this)"><i class="fa-solid fa-user-astronaut"></i> ชีวิตและอนาคต</li>
+            <li class="menu-item" onclick="showPage('members', this)"><i class="fa-solid fa-id-card"></i> ผู้จัดทำโครงงาน</li>
+        </ul>
+        <div class="theme-wrapper">
+            <button class="water-btn" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i> เปลี่ยนโหมดสี</button>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        
+        <section id="intro" class="page-section active">
+            <h1 class="section-title">กำเนิดจักรวาล (The Origin)</h1>
+            <p class="section-subtitle">Big Bang Theory & Composition</p>
+            <div class="content-card" data-aos="fade-up">
+                <h3><i class="fa-solid fa-atom" style="color: var(--primary-purple);"></i> ทฤษฎีบิกแบง (Big Bang)</h3>
+                <p>จักรวาลถือกำเนิดขึ้นเมื่อประมาณ 13,800 ล้านปีก่อน จากจุดที่มีความหนาแน่นและอุณหภูมิสูงอนันต์ เกิดการระเบิดออกและขยายตัวอย่างรวดเร็ว (Inflation) ทำให้อนุภาคพื้นฐานก่อตัวเป็นโปรตอน นิวตรอน และอิเล็กตรอน ก่อนจะรวมตัวกันเป็นอะตอมของไฮโดรเจนและฮีเลียม ซึ่งเป็นเชื้อเพลิงหลักของดาวฤกษ์</p>
+                
+                <div class="grid-3" style="margin-top: 20px; text-align: center;">
+                    <div class="sub-box">
+                        <h1 style="color: var(--primary-blue);">68%</h1>
+                        <p>พลังงานมืด (Dark Energy)<br><small>แรงผลักให้จักรวาลขยายตัว</small></p>
+                    </div>
+                    <div class="sub-box">
+                        <h1 style="color: var(--text-main);">27%</h1>
+                        <p>สสารมืด (Dark Matter)<br><small>มองไม่เห็น แต่มีแรงโน้มถ่วง</small></p>
+                    </div>
+                    <div class="sub-box">
+                        <h1 style="color: #2ecc71;">5%</h1>
+                        <p>สสารปกติ (Normal Matter)<br><small>ดาว, กาแล็กซี, สิ่งมีชีวิต</small></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="solar" class="page-section">
+            <h1 class="section-title">ระบบสุริยะ (Solar System)</h1>
+            <p class="section-subtitle">Our Neighborhood</p>
+            
+            <div class="content-card" data-aos="fade-right">
+                <h3><i class="fa-solid fa-sun" style="color: #f39c12;"></i> ดวงอาทิตย์ (The Sun)</h3>
+                <p>เป็นดาวฤกษ์ชนิด G2V มีอายุประมาณ 4,600 ล้านปี เป็นแหล่งพลังงานหลักของสิ่งมีชีวิตบนโลก เกิดจากปฏิกิริยานิวเคลียร์ฟิวชันที่เปลี่ยนไฮโดรเจนเป็นฮีเลียมที่แกนกลาง</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="content-card" data-aos="zoom-in">
+                    <h3>ดาวเคราะห์ชั้นใน (Inner Planets)</h3>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>พุธ:</strong> ร้อนจัดและเย็นจัด ไม่มีบรรยากาศ</li>
+                        <li><strong>ศุกร์:</strong> ฝาแฝดโลก แต่ร้อนที่สุดเพราะเรือนกระจก</li>
+                        <li><strong>โลก:</strong> ดาวเคราะห์แห่งน้ำ มีสิ่งมีชีวิต</li>
+                        <li><strong>อังคาร:</strong> ดาวแดง เป้าหมายต่อไปของมนุษย์</li>
+                    </ul>
+                </div>
+                <div class="content-card" data-aos="zoom-in">
+                    <h3>ดาวเคราะห์ชั้นนอก (Outer Planets)</h3>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>พฤหัสบดี:</strong> ใหญ่ที่สุด มีจุดแดงใหญ่</li>
+                        <li><strong>เสาร์:</strong> โดดเด่นด้วยวงแหวนน้ำแข็ง</li>
+                        <li><strong>ยูเรนัส:</strong> หมุนตะแคง สีฟ้าเขียว</li>
+                        <li><strong>เนปจูน:</strong> ลมพายุรุนแรง สีน้ำเงินเข้ม</li>
+                    </ul>
+                </div>
+            </div>
+             <div class="info-box" style="margin-bottom: 20px;">
+                <strong>แถบไคเปอร์และเมฆออร์ต:</strong> ถัดจากวงโคจรเนปจูนออกไป เป็นที่อยู่ของดาวเคราะห์แคระ (เช่น พลูโต) และแหล่งกำเนิดของดาวหาง
+            </div>
+        </section>
+
+        <section id="stars" class="page-section">
+            <h1 class="section-title">วิวัฒนาการของดาวฤกษ์</h1>
+            <p class="section-subtitle">Stellar Evolution: Birth to Death</p>
+            <div class="content-card" data-aos="fade-up">
+                <p>ดาวฤกษ์ทุกดวงเกิดจาก <strong>เนบิวลา (Nebula)</strong> แต่จุดจบของมันขึ้นอยู่กับ "มวล" ของมัน:</p>
+                <div class="grid-2" style="margin-top: 20px;">
+                    <div class="sub-box" style="border-left: 5px solid #f1c40f;">
+                        <h3 style="color: #f1c40f;">ดาวมวลน้อย-ปานกลาง (เช่น ดวงอาทิตย์)</h3>
+                        <ol style="margin-left: 20px; margin-top: 10px;">
+                            <li><strong>ดาวฤกษ์แถบลำดับหลัก:</strong> เผาผลาญไฮโดรเจน (สถานะปัจจุบัน)</li>
+                            <li><strong>ดาวยักษ์แดง (Red Giant):</strong> ขยายตัวเมื่อเชื้อเพลิงใกล้หมด</li>
+                            <li><strong>เนบิวลาดาวเคราะห์:</strong> ผิวนอกหลุดออกไป</li>
+                            <li><strong>ดาวแคระขาว (White Dwarf):</strong> แกนกลางที่เหลืออยู่ ค่อยๆ เย็นลง</li>
+                        </ol>
+                    </div>
+                    <div class="sub-box" style="border-left: 5px solid #e74c3c;">
+                        <h3 style="color: #e74c3c;">ดาวมวลมาก (Massive Stars)</h3>
+                        <ol style="margin-left: 20px; margin-top: 10px;">
+                            <li><strong>ดาวยักษ์ใหญ่ (Supergiant):</strong> สร้างธาตุหนักเหล็กในแกนกลาง</li>
+                            <li><strong>ซูเปอร์โนวา (Supernova):</strong> ระเบิดรุนแรง สว่างกว่าทั้งกาแล็กซี</li>
+                            <li><strong>ดาวนิวตรอน หรือ หลุมดำ:</strong> หากมวลมากพอจะยุบตัวเป็นหลุมดำ</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="deepspace" class="page-section">
+            <h1 class="section-title">วัตถุลึกลับในห้วงลึก</h1>
+            <p class="section-subtitle">Deep Space Mysteries</p>
+            <div class="grid-2">
+                <div class="content-card" data-aos="zoom-in">
+                    <h3><i class="fa-solid fa-circle" style="color: #000;"></i> หลุมดำ (Black Hole)</h3>
+                    <p>ขอบฟ้าเหตุการณ์ (Event Horizon) คือจุดที่แม้แต่แสงก็หนีออกมาไม่ได้ ใจกลางคือ Singularity ที่กฎฟิสิกส์ปัจจุบันอธิบายไม่ได้</p>
+                </div>
+                <div class="content-card" data-aos="zoom-in" data-aos-delay="100">
+                    <h3><i class="fa-solid fa-bullseye" style="color: var(--primary-purple);"></i> พัลซาร์ (Pulsar)</h3>
+                    <p>ดาวนิวตรอนที่หมุนรอบตัวเองเร็วมากและปล่อยคลื่นวิทยุออกมาเป็นจังหวะเหมือนประภาคารอวกาศ</p>
+                </div>
+                <div class="content-card" data-aos="zoom-in" data-aos-delay="200">
+                    <h3><i class="fa-solid fa-bolt" style="color: #f39c12;"></i> ควอซาร์ (Quasar)</h3>
+                    <p>นิวเคลียสของดาราจักรที่มีหลุมดำมวลยิ่งยวดอยู่ใจกลาง ปล่อยพลังงานสว่างไสวที่สุดในจักรวาล มองเห็นได้จากระยะไกลโพ้น</p>
+                </div>
+                <div class="content-card" data-aos="zoom-in" data-aos-delay="300">
+                    <h3><i class="fa-solid fa-globe" style="color: #2ecc71;"></i> ดาวเคราะห์นอกระบบ (Exoplanets)</h3>
+                    <p>การค้นหา "โลกใบที่สอง" ในเขต Habitable Zone (ระยะห่างที่น้ำเป็นของเหลวได้) เช่น ดาว Kepler-452b</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="exploration" class="page-section">
+            <h1 class="section-title">ประวัติการสำรวจอวกาศ</h1>
+            <p class="section-subtitle">A History of Discovery</p>
+            <div class="grid-2">
+                <div class="content-card" data-aos="zoom-in">
+                    <h3><i class="fa-solid fa-satellite"></i> 1957: Sputnik 1</h3>
+                    <p>โซเวียตส่งดาวเทียมดวงแรก เปิดฉาก Space Age</p>
+                </div>
+                <div class="content-card" data-aos="zoom-in">
+                    <h3><i class="fa-solid fa-user"></i> 1961: Yuri Gagarin</h3>
+                    <p>มนุษย์คนแรกที่ขึ้นสู่อวกาศ (Vostok 1)</p>
+                </div>
+                <div class="content-card" data-aos="zoom-in">
+                    <h3><i class="fa-solid fa-flag-usa"></i> 1969: Apollo 11</h3>
+                    <p>Neil Armstrong เหยียบดวงจันทร์ "ก้าวเล็กๆ ของมนุษย์..."</p>
+                </div>
+                 <div class="content-card" data-aos="zoom-in">
+                    <h3><i class="fa-solid fa-robot"></i> 2020s: Mars Rovers</h3>
+                    <p>หุ่นยนต์ Perseverance และโดรน Ingenuity สำรวจดาวอังคาร</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="agencies" class="page-section">
+            <h1 class="section-title">องค์กรอวกาศระดับโลก</h1>
+            <p class="section-subtitle">Key Agencies</p>
+            <div class="grid-3">
+                <div class="sub-box" data-aos="fade-up"><strong style="color: #3498db;">NASA (USA)</strong><br>ผู้นำด้านเทคโนโลยี โครงการ Artemis กลับสู่ดวงจันทร์</div>
+                <div class="sub-box" data-aos="fade-up"><strong style="color: #9b59b6;">ESA (Europe)</strong><br>เชี่ยวชาญด้านดาวเทียมและวิทยาศาสตร์อวกาศ</div>
+                <div class="sub-box" data-aos="fade-up"><strong style="color: #e74c3c;">CNSA (China)</strong><br>สถานีอวกาศเทียนกง และยานสำรวจดวงจันทร์</div>
+                <div class="sub-box" data-aos="fade-up"><strong style="color: #e67e22;">Roscosmos (Russia)</strong><br>ผู้เชี่ยวชาญสถานีอวกาศและจรวดโซยุซ</div>
+                <div class="sub-box" data-aos="fade-up"><strong style="color: #2ecc71;">GISTDA (Thailand)</strong><br>ดาวเทียม THEOS-2 และโครงการไปดวงจันทร์ (MUSE)</div>
+                <div class="sub-box" data-aos="fade-up"><strong style="color: var(--text-main);">SpaceX (Private)</strong><br>จรวด Falcon 9 ที่นำกลับมาใช้ใหม่ได้ และ Starship</div>
+            </div>
+        </section>
+
+        <section id="future" class="page-section">
+            <h1 class="section-title">ชีวิตในอวกาศและอนาคต</h1>
+            <p class="section-subtitle">Living in Space & Future Challenges</p>
+            
+            <div class="content-card" data-aos="flip-up">
+                <h3><i class="fa-solid fa-user-astronaut" style="color: var(--primary-blue);"></i> ชีวิตบน ISS</h3>
+                <ul style="margin-left: 20px;">
+                    <li><strong>อาหาร:</strong> อาหารแห้งสุญญากาศ รสชาติจืดลงเพราะของเหลวคั่งในหัว</li>
+                    <li><strong>การนอน:</strong> ผูกตัวติดกับผนังเพื่อไม่ให้ลอยชนของ</li>
+                    <li><strong>ร่างกาย:</strong> ต้องออกกำลังกายวันละ 2 ชม. ป้องกันกล้ามเนื้อลีบ</li>
+                </ul>
+            </div>
+
+            <div class="grid-2">
+                <div class="content-card" data-aos="flip-up">
+                     <h3><i class="fa-solid fa-trash-can" style="color: #e74c3c;"></i> ขยะอวกาศ (Space Debris)</h3>
+                     <p>เศษซากดาวเทียมเก่าและชิ้นส่วนจรวดกว่า 100 ล้านชิ้นที่โคจรรอบโลกด้วยความเร็วสูง เป็นอันตรายต่อยานอวกาศและสถานีอวกาศในอนาคต (Kessler Syndrome)</p>
+                </div>
+                <div class="content-card" data-aos="flip-up">
+                     <h3><i class="fa-solid fa-globe" style="color: #2ecc71;"></i> การตั้งถิ่นฐาน (Colonization)</h3>
+                     <p>เป้าหมายระยะยาวคือการสร้างฐานบนดวงจันทร์ (Moon Base) เพื่อใช้เป็นจุดกระโดดไปสู่การตั้งอาณานิคมบนดาวอังคาร (Mars Colony)</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="members" class="page-section">
+            <h1 class="section-title">ผู้จัดทำโครงงาน</h1>
+            <p class="section-subtitle">Developer Profile</p>
+            <div class="content-card dev-card" data-aos="zoom-in">
+                <div class="dev-banner"></div>
+                <div class="dev-profile-row">
+                    <div class="dev-img-container">
+                        <img src="p/pf.jpg" alt="Profile Picture">
+                    </div>
+                    <div class="dev-info">
+                        <h2 style="color: var(--primary-blue); font-size: 1.8rem; margin-bottom: 5px;">นาย เจษฎาพล สุทธิเชษฐ์</h2>
+                        <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 15px;">รหัสนักเรียน: 49047</p>
+                        <div style="margin-bottom: 20px;">
+                            <span class="skill-tag">Web Developer</span>
+                            <span class="skill-tag">HTML</span>
+                            <span class="skill-tag">CSS</span>
+                            <span class="skill-tag">Solo project</span>
+                            <span class="skill-tag tag-bad">Back-end ( Not good )</span>
+                        </div>
+                        <ul class="contact-list">
+                            <li><i class="fa-solid fa-envelope"></i> kandasuththichesth692@gmail.com</li>
+                            <li><i class="fa-brands fa-facebook"></i> Maid Codx</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <a href="index.html" class="btn-home" title="กลับหน้าหลัก">
+        <i class="fa-solid fa-house"></i>
+    </a>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+        // Theme Logic
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+        function toggleTheme() {
+            const body = document.body;
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark');
+            }
+        }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            if (window.innerWidth <= 768) sidebar.classList.toggle('mobile-open');
+            else { sidebar.classList.toggle('collapsed'); mainContent.classList.toggle('expanded'); }
+        }
+        function showPage(pageId, btnElement) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            btnElement.classList.add('active');
+            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mobile-open');
+            window.scrollTo(0,0);
+        }
+    </script>
+</body>
+</html>

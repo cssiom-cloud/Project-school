@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCX Projects Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&family=Sarabun:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        /* --- Theme Variables --- */
+        :root { 
+            --primary: #003399; 
+            --accent: #7b2cbf; 
+            --bg: #f0f2f5; 
+            --text: #333; 
+            --card-bg: #ffffff;
+            --header-bg: #ffffff;
+            --shadow: rgba(0,0,0,0.08);
+            --sub-text: #666;
+        }
+
+        [data-theme="dark"] {
+            --primary: #3b82f6; 
+            --accent: #9d4edd; 
+            --bg: #121212; 
+            --text: #e0e0e0; 
+            --card-bg: #1e1e1e;
+            --header-bg: #1e1e1e;
+            --shadow: rgba(0,0,0,0.5);
+            --sub-text: #a0a0a0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            transition: background 0.5s, color 0.5s;
+        }
+        
+        /* Header Adjusted */
+        header { 
+            background: var(--header-bg); 
+            padding: 15px 30px; 
+            box-shadow: 0 4px 15px var(--shadow); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+            transition: background 0.5s;
+        }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .logo { height: 45px; width: auto; border-radius: 8px; }
+        .project-name { font-family: 'Prompt'; font-weight: 700; font-size: 1.1rem; color: var(--primary); }
+        .subtitle { font-size: 0.8rem; color: var(--sub-text); font-weight: normal; }
+
+        /* Group Buttons Right */
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+
+        /* Theme Button */
+        .theme-btn {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Prompt';
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .theme-btn:hover { background: rgba(59, 130, 246, 0.1); }
+
+        /* Profile Button (New) */
+        .profile-btn {
+            background: var(--primary);
+            border: 2px solid var(--primary);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-family: 'Prompt';
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .profile-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Hero */
+        .hero { 
+            text-align: center; 
+            padding: 80px 20px; 
+            background-image: linear-gradient(rgba(0, 51, 153, 0.8), rgba(0, 0, 50, 0.9)), url('p/banner.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white; 
+            border-radius: 0 0 40px 40px; 
+            margin-bottom: 40px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .hero h1 { font-family: 'Prompt'; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        
+        /* Grid System */
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; flex-grow: 1; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; }
+        
+        /* Card Styling */
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 15px; overflow: hidden; 
+            box-shadow: 0 5px 15px var(--shadow); transition: 0.3s; 
+            text-decoration: none; color: inherit; display: flex; flex-direction: column; 
+            border: 1px solid rgba(255,255,255,0.05); 
+        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .card-header { height: 140px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; color: white; }
+        .card-body { padding: 25px; text-align: center; }
+        .card-title { font-family: 'Prompt'; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+        .card-desc { color: var(--sub-text); font-size: 0.9rem; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .btn-go { padding: 8px 20px; border-radius: 50px; background: var(--bg); font-weight: 600; font-size: 0.85rem; transition: 0.3s; color: var(--text); }
+        .card:hover .btn-go { background: var(--primary); color: white; }
+
+        /* Footer */
+        .marquee-container { background: var(--primary); color: white; padding: 8px 0; overflow: hidden; white-space: nowrap; font-size: 0.9rem; font-family: 'Prompt'; border-top: 1px solid rgba(255,255,255,0.1); }
+        .marquee-content { display: inline-block; animation: marquee 25s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        footer { text-align: center; padding: 20px; background: var(--header-bg); font-size: 0.8rem; color: var(--sub-text); margin-top: auto; transition: background 0.5s; }
+
+        /* Media Query */
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+            .project-name { font-size: 0.9rem; }
+            .subtitle { display: none; } /* ซ่อนคำบรรยายในมือถือถ้าที่แคบ */
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <img src="p/1.jpg" alt="Logo" class="logo">
+            <div>
+                <div class="project-name">MCX Projects Hub</div>
+                <div class="subtitle">รวบรวมผลงานของ นาย เจษฎาพล สุทธิเชษฐ์</div>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <button class="theme-btn" onclick="toggleTheme()">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            
+            <a href="profile.html" class="profile-btn">
+                <i class="fa-solid fa-user"></i>
+                <span>ผู้จัดทำ</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="hero">
+        <div data-aos="fade-down">
+            <h1>คลังบทเรียนและโครงงาน</h1>
+            <p>ระบบสารสนเทศเพื่อการนำเสนอผลงานทางวิชาการ (Unofficial)</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid" id="projectGrid"></div>
+    </div>
+
+    <div class="marquee-container">
+        <div class="marquee-content">
+            ผู้จัดทำ: นาย เจษฎาพล สุทธิเชษฐ์ | เนื้อหานี้จัดทำเพื่อการศึกษา อาจจะมีการผิดพลาดได้ ควรศึกด้วยตัวเองในบางจุด และ เว็ปนี้ไม่ใช่เว็ปของทางการ เป็นเพียงเว็ปของนักเรียนเท่านั้น
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2026 Developed by Jessadaphon Suththichest. All rights reserved.</p>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        // Theme Persistence
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            updateIndexButton(true);
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                updateIndexButton(false);
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                updateIndexButton(true);
+            }
+        }
+
+        function updateIndexButton(isDark) {
+            const btn = document.querySelector('.theme-btn');
+            const icon = btn.querySelector('i');
+            if (isDark) {
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                icon.className = 'fa-solid fa-moon';
+            }
+        }
+
+        // Project Data
+        const myProjects = [
+            {
+                title: "ข้อมูลจังหวัดราชบุรี",
+                desc: "ประวัติศาสตร์ แหล่งท่องเที่ยว และของดีประจำจังหวัดราชบุรี",
+                file: "ratchaburi.html",
+                icon: "fa-dragon",
+                color: "linear-gradient(45deg, #54a0ff, #5f27cd)"
+            },
+            {
+                title: "วันฮาโลวีน",
+                desc: "เจาะลึกประวัติศาสตร์และตำนานความเชื่อของเทศกาลฮาโลวีน",
+                file: "halloween.html",
+                icon: "fa-ghost",
+                color: "linear-gradient(45deg, #ff6b6b, #ff9f43)"
+            },
+            {
+                title: "ประเทศไทย",
+                desc: "ข้อมูลทั่วไป ประวัติศาสตร์ วัฒนธรรม และการท่องเที่ยวไทย",
+                file: "thailand.html",
+                icon: "fa-earth-asia",
+                color: "linear-gradient(45deg, #e74c3c, #2980b9)"
+            },
+            {
+                title: "สำรวจอวกาศ",
+                desc: "จักรวาล ระบบสุริยะ และเทคโนโลยีอวกาศ",
+                file: "space.html",
+                icon: "fa-user-astronaut",
+                color: "linear-gradient(45deg, #2c3e50, #8e44ad)"
+            }
+        ];
+
+        // Create Cards
+        const grid = document.getElementById('projectGrid');
+        myProjects.forEach(proj => {
+            const card = document.createElement('a');
+            card.href = proj.file;
+            card.className = 'card';
+            card.setAttribute('data-aos', 'fade-up');
+            card.innerHTML = `
+                <div class="card-header" style="background: ${proj.color}">
+                    <i class="fa-solid ${proj.icon}"></i>
+                </div>
+                <div class="card-body">
+                    <div class="card-title">${proj.title}</div>
+                    <div class="card-desc">${proj.desc}</div>
+                    <span class="btn-go">เข้าชม <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+</html>
